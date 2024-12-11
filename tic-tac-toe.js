@@ -1,3 +1,5 @@
+const body = document.querySelector('body');
+
 function initBoardProperties() {
     const boardObject = {
         "H1": [],
@@ -44,15 +46,6 @@ function showErrorMessage(typeOfError) {
     console.log("Error");
 }
 
-// function executeEndState(globalBoard, type) {
-//     if (type == 'win') {
-//         createWinWindow(globalBoard);
-
-//     } else if (type == 'draw') {
-//         console.log("It's a draw.");
-//     }
-// }
-
 function checkWinCondition(symbol, globalBoard, currentCellProperty) {
     let line = globalBoard.boardObject[currentCellProperty];
     if (line.length === 3 && line.every((element) => element === symbol)) {
@@ -62,9 +55,9 @@ function checkWinCondition(symbol, globalBoard, currentCellProperty) {
     }
 };
 
-function createPlayer(symbol, boardProperties) {
+function createPlayer(name, symbol, boardProperties) {
     let player = Object.create(boardProperties)
-    Object.assign(player, {symbol: symbol});
+    Object.assign(player, {name: name}, {symbol: symbol});
     return player;
 }
 
@@ -74,17 +67,71 @@ function createElement(type) {
 
 function attachEventListener(cell, cellValue, globalBoard) {
     cell.addEventListener("click", () => {
-        updateGameState(cellValue, globalBoard);
         let thisCell = document.getElementById(`${cellValue}`);
         thisCell.textContent = globalBoard.players[0].symbol;
+        updateGameState(cellValue, globalBoard);
     });
 }
 
 
-function initGame(){
+function initGame(names){
+    //Add functionality later to ask for player names and update player
+    resetBoard();
     let globalBoard = initBoardProperties();
-    globalBoard.players = [createPlayer("O", globalBoard), createPlayer("X", globalBoard)];
+    let [playerOneName, playerTwoName] = names;
+    globalBoard.players = [createPlayer(playerOneName,"O", globalBoard), createPlayer(playerTwoName, "X", globalBoard)];
     createBoardCells(globalBoard);
+}
+
+function startWindow() {
+    let startButton = document.createElement('button');
+    let container = document.createElement('div');
+    startButton.setAttribute('type', 'button');
+    startButton.textContent = "Start";
+    startButton.addEventListener("click", () => {
+        askPlayerNames();
+    });
+    container.appendChild(startButton);
+    body.appendChild(container);
+}
+
+function askPlayerNames() {
+    //Compact these later
+    let dialogWindow = createElement('dialog');
+    let submitButton = createElement('button');
+    let container = createElement('div');
+    let playerOneNameField = createElement('input');
+    let playerTwoNameField = createElement('input');
+    let playerOneNameLabel = createElement('label');
+    let playerTwoNameLabel = createElement('label');
+
+    submitButton.setAttribute('type', 'button');
+    submitButton.textContent = "Submit";
+    playerOneNameField.setAttribute('id', 'playerOne');
+    playerTwoNameField.setAttribute('id', 'playerTwo');
+    playerOneNameLabel.setAttribute('for', 'playerOne');
+    playerOneNameLabel.textContent = 'Player One Name: ';
+    playerTwoNameLabel.setAttribute('for', 'playerTwo');
+    playerTwoNameLabel.textContent = 'Player Two Name: ';
+    
+    submitButton.addEventListener("click", () => {
+        
+        let [playerOneName, playerTwoName] = [playerOneNameField.value, playerTwoNameField.value];
+        dialogWindow.close();
+        initGame([playerOneName, playerTwoName]);
+        
+    });
+
+    container.appendChild(playerOneNameLabel);
+    container.appendChild(playerOneNameField);
+    container.appendChild(playerTwoNameLabel);
+    container.appendChild(playerTwoNameField);
+    container.appendChild(submitButton);
+    dialogWindow.appendChild(container);
+    body.appendChild(dialogWindow);
+    dialogWindow.showModal();
+
+
 }
 
 function updateGameState(cellValue, globalBoard) {
@@ -109,7 +156,6 @@ function updateGameState(cellValue, globalBoard) {
 }
 
 function createBoardCells(globalBoard) {
-    let body = document.querySelector('body');
     let container = createElement('div');
     container.setAttribute('id', 'container');
 
@@ -126,27 +172,29 @@ function createBoardCells(globalBoard) {
 function createDialogWindow(globalBoard, event) {
     let dialogWindow = createElement('dialog');
     let continueButton = createElement('button');
-    let body = document.querySelector('#container');
     continueButton.setAttribute('type', 'button');
     continueButton.addEventListener("click", () => {
+        dialogWindow.close();
         resetBoard();
-        initGame();
+        startWindow();
     });
     continueButton.textContent = "Reset";
 
     if (event == 'win') {
-        dialogWindow.textContent = `${globalBoard.players[0].symbol} wins!`;
+        dialogWindow.textContent = `${globalBoard.players[1].name} wins!`;
+
     } else if (event == 'draw') {
         dialogWindow.textContent = `It's a draw.`;
     }
+
     dialogWindow.appendChild(continueButton);
     body.appendChild(dialogWindow);
     dialogWindow.showModal();
 }
 
 function resetBoard() {
-    let container = document.querySelector('#container');
+    let container = document.querySelector('body > div');
     container.remove();
 }
 
-initGame();
+startWindow();
