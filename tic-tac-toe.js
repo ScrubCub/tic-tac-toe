@@ -36,23 +36,22 @@ function inputMark(cell, globalBoard, symbol) {
     globalBoard.boardObject[prop].push(symbol);
     return !checkWinCondition(symbol, globalBoard, prop);        
     })
-    globalBoard.usedCells = usedCellsFunc(globalBoard.usedCells, cell);
+    globalBoard.usedCells.push(cell);
     return globalBoard;
 };
-
-function usedCellsFunc(usedCell, cell) {
-    usedCell.push(cell);
-    return usedCell;
-}
 
 function showErrorMessage(typeOfError) {
     console.log("Error");
 }
 
-function executeWinState() {
-    console.log("You Win");
-    createWinWindow();
-}
+// function executeEndState(globalBoard, type) {
+//     if (type == 'win') {
+//         createWinWindow(globalBoard);
+
+//     } else if (type == 'draw') {
+//         console.log("It's a draw.");
+//     }
+// }
 
 function checkWinCondition(symbol, globalBoard, currentCellProperty) {
     let line = globalBoard.boardObject[currentCellProperty];
@@ -102,9 +101,11 @@ function updateGameState(cellValue, globalBoard) {
     }
 
     if (globalBoard.winnerExists) {
-        executeWinState();
-    
+        createDialogWindow(globalBoard, 'win');
 }
+    if (globalBoard.usedCells.length == 9) {
+        createDialogWindow(globalBoard, 'draw');
+    }
 }
 
 function createBoardCells(globalBoard) {
@@ -122,17 +123,22 @@ function createBoardCells(globalBoard) {
     body.appendChild(container);
 }
 
-function createWinWindow() {
+function createDialogWindow(globalBoard, event) {
     let dialogWindow = createElement('dialog');
     let continueButton = createElement('button');
+    let body = document.querySelector('#container');
     continueButton.setAttribute('type', 'button');
     continueButton.addEventListener("click", () => {
         resetBoard();
         initGame();
     });
     continueButton.textContent = "Reset";
-    dialogWindow.textContent = 'Reset?';
-    let body = document.querySelector('#container');
+
+    if (event == 'win') {
+        dialogWindow.textContent = `${globalBoard.players[0].symbol} wins!`;
+    } else if (event == 'draw') {
+        dialogWindow.textContent = `It's a draw.`;
+    }
     dialogWindow.appendChild(continueButton);
     body.appendChild(dialogWindow);
     dialogWindow.showModal();
