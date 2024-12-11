@@ -49,8 +49,9 @@ function showErrorMessage(typeOfError) {
     console.log("Error");
 }
 
-function showWinMessage() {
+function executeWinState() {
     console.log("You Win");
+    createWinWindow();
 }
 
 function checkWinCondition(symbol, globalBoard, currentCellProperty) {
@@ -75,6 +76,8 @@ function createElement(type) {
 function attachEventListener(cell, cellValue, globalBoard) {
     cell.addEventListener("click", () => {
         updateGameState(cellValue, globalBoard);
+        let thisCell = document.getElementById(`${cellValue}`);
+        thisCell.textContent = globalBoard.players[0].symbol;
     });
 }
 
@@ -83,18 +86,6 @@ function initGame(){
     let globalBoard = initBoardProperties();
     globalBoard.players = [createPlayer("O", globalBoard), createPlayer("X", globalBoard)];
     createBoardCells(globalBoard);
-    // while (!globalBoard.winnerExists) {
-    //     console.log(userInput);
-    //     if (userInput !== undefined) {
-            
-
-    //     } else if (userInput !== undefined && globalBoard.usedCells.indexOf(userInput !== -1)) {
-    //         showErrorMessage();
-    //     } else {
-    //         globalBoard.winnerExists = true; // temp stop
-    //     }
-        
-    // }
 }
 
 function updateGameState(cellValue, globalBoard) {
@@ -111,7 +102,7 @@ function updateGameState(cellValue, globalBoard) {
     }
 
     if (globalBoard.winnerExists) {
-        showWinMessage();
+        executeWinState();
     
 }
 }
@@ -129,6 +120,27 @@ function createBoardCells(globalBoard) {
         container.appendChild(cell);
     }
     body.appendChild(container);
+}
+
+function createWinWindow() {
+    let dialogWindow = createElement('dialog');
+    let continueButton = createElement('button');
+    continueButton.setAttribute('type', 'button');
+    continueButton.addEventListener("click", () => {
+        resetBoard();
+        initGame();
+    });
+    continueButton.textContent = "Reset";
+    dialogWindow.textContent = 'Reset?';
+    let body = document.querySelector('#container');
+    dialogWindow.appendChild(continueButton);
+    body.appendChild(dialogWindow);
+    dialogWindow.showModal();
+}
+
+function resetBoard() {
+    let container = document.querySelector('#container');
+    container.remove();
 }
 
 initGame();
