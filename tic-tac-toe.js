@@ -65,17 +65,30 @@ function createElement(type) {
     return document.createElement(type);
 }
 
+function createMultipleElements(types) {
+    let elements = [];
+    for (let i = 0; i < types.length; i++) {
+        elements.push(createElement(types[i]));
+    }
+    return elements;
+}
+
 function attachEventListener(cell, cellValue, globalBoard) {
     cell.addEventListener("click", () => {
-        let thisCell = document.getElementById(`${cellValue}`);
-        thisCell.textContent = globalBoard.players[0].symbol;
-        updateGameState(cellValue, globalBoard);
+
+        if (globalBoard.usedCells.indexOf(cellValue) == -1) {
+            let thisCell = document.getElementById(`${cellValue}`);
+            thisCell.textContent = globalBoard.players[0].symbol;
+            updateGameState(cellValue, globalBoard);
+        } else {
+            showErrorMessage();
+        }
+        
     });
 }
 
 
 function initGame(names){
-    //Add functionality later to ask for player names and update player
     resetBoard();
     let globalBoard = initBoardProperties();
     let [playerOneName, playerTwoName] = names;
@@ -96,23 +109,11 @@ function startWindow() {
 }
 
 function askPlayerNames() {
-    //Compact these later
-    let dialogWindow = createElement('dialog');
-    let submitButton = createElement('button');
-    let container = createElement('div');
-    let playerOneNameField = createElement('input');
-    let playerTwoNameField = createElement('input');
-    let playerOneNameLabel = createElement('label');
-    let playerTwoNameLabel = createElement('label');
-
-    submitButton.setAttribute('type', 'button');
-    submitButton.textContent = "Submit";
-    playerOneNameField.setAttribute('id', 'playerOne');
-    playerTwoNameField.setAttribute('id', 'playerTwo');
-    playerOneNameLabel.setAttribute('for', 'playerOne');
+    let [dialogWindow, submitButton, container, playerOneNameField, playerTwoNameField, playerOneNameLabel, playerTwoNameLabel] = createMultipleElements(['dialog', 'button', 'div', 'input', 'input', 'label', 'label']);
+    setAllAttributes([submitButton, playerOneNameField, playerTwoNameField, playerOneNameLabel, playerTwoNameLabel], ['type', 'id', 'id', 'for', 'for'], ['button', 'playerOne', 'playerTwo', 'playerOne', 'playerTwo'])
     playerOneNameLabel.textContent = 'Player One Name: ';
-    playerTwoNameLabel.setAttribute('for', 'playerTwo');
     playerTwoNameLabel.textContent = 'Player Two Name: ';
+    submitButton.textContent = "Submit";
     
     submitButton.addEventListener("click", () => {
         
@@ -122,13 +123,7 @@ function askPlayerNames() {
         
     });
 
-    container.appendChild(playerOneNameLabel);
-    container.appendChild(playerOneNameField);
-    container.appendChild(playerTwoNameLabel);
-    container.appendChild(playerTwoNameField);
-    container.appendChild(submitButton);
-    dialogWindow.appendChild(container);
-    body.appendChild(dialogWindow);
+    appendChildrenToParents([container, dialogWindow, body], [[playerOneNameLabel, playerOneNameField, playerTwoNameLabel, playerTwoNameField, submitButton], [container], [dialogWindow]]);
     dialogWindow.showModal();
 
 
@@ -139,10 +134,8 @@ function updateGameState(cellValue, globalBoard) {
     let [currentPlayer, previousPlayer] = globalBoard.players;
     console.log(currentPlayer);
 
-     if (globalBoard.usedCells.indexOf(userInput) >= 0) {
-            showErrorMessage();
-
-    } else if (globalBoard.usedCells.indexOf(userInput) == -1) {
+    if (globalBoard.usedCells.indexOf(userInput) == -1) {
+        console.log("Fired")
             globalBoard = inputMark(userInput, globalBoard, currentPlayer.symbol);
             globalBoard.players = [previousPlayer, currentPlayer];
     }
@@ -195,6 +188,25 @@ function createDialogWindow(globalBoard, event) {
 function resetBoard() {
     let container = document.querySelector('body > div');
     container.remove();
+}
+
+function appendChildrenToParents(parents, children) {
+    for (let i = 0; i < parents.length; i++) {
+        let parent = parents[i];
+
+        for (let j = 0; j < children[i].length; j++) {
+            console.log(children[i][j]);
+            parent.appendChild(children[i][j]);
+        }
+    }
+
+    return parents;
+}
+
+function setAllAttributes(elements, attributes, values) {
+    for (let i = 0; i < elements.length; i++) {
+        elements[i].setAttribute(attributes[i], values[i]);
+    }
 }
 
 startWindow();
