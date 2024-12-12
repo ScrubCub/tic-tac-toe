@@ -1,5 +1,7 @@
 const body = document.querySelector('body');
 
+// Functions for initializing board properties
+
 function initBoardProperties() {
     const boardObject = {
         "H1": [],
@@ -31,35 +33,13 @@ function showCellProperties() {
     return cellPropertiesObject;
 };
 
-function inputMark(cell, globalBoard, symbol) {
-
-    let currentCellProperties = showCellProperties(cell);
-    globalBoard.winnerExists = !currentCellProperties[cell].every((prop) => {
-    globalBoard.boardObject[prop].push(symbol);
-    return !checkWinCondition(symbol, globalBoard, prop);        
-    })
-    globalBoard.usedCells.push(cell);
-    return globalBoard;
-};
-
-function showErrorMessage(typeOfError) {
-    console.log("Error");
-}
-
-function checkWinCondition(symbol, globalBoard, currentCellProperty) {
-    let line = globalBoard.boardObject[currentCellProperty];
-    if (line.length === 3 && line.every((element) => element === symbol)) {
-        return true;
-    } else {
-        return false;
-    }
-};
-
 function createPlayer(name, symbol, boardProperties) {
     let player = Object.create(boardProperties)
     Object.assign(player, {name: name}, {symbol: symbol});
     return player;
 }
+
+// Functions for creating and setting attributes to elements
 
 function createElement(type) {
     return document.createElement(type);
@@ -71,81 +51,6 @@ function createMultipleElements(types) {
         elements.push(createElement(types[i]));
     }
     return elements;
-}
-
-function attachEventListener(cell, cellValue, globalBoard) {
-    cell.addEventListener("click", () => {
-
-        if (globalBoard.usedCells.indexOf(cellValue) == -1) {
-            let thisCell = document.getElementById(`${cellValue}`);
-            thisCell.textContent = globalBoard.players[0].symbol;
-            updateGameState(cellValue, globalBoard);
-        } else {
-            showErrorMessage();
-        }
-        
-    });
-}
-
-
-function initGame(names){
-    resetBoard();
-    let globalBoard = initBoardProperties();
-    let [playerOneName, playerTwoName] = names;
-    globalBoard.players = [createPlayer(playerOneName,"O", globalBoard), createPlayer(playerTwoName, "X", globalBoard)];
-    createBoardCells(globalBoard);
-}
-
-function startWindow() {
-    let startButton = document.createElement('button');
-    let container = document.createElement('div');
-    startButton.setAttribute('type', 'button');
-    startButton.textContent = "Start";
-    startButton.addEventListener("click", () => {
-        askPlayerNames();
-    });
-    container.appendChild(startButton);
-    body.appendChild(container);
-}
-
-function askPlayerNames() {
-    let [dialogWindow, submitButton, container, playerOneNameField, playerTwoNameField, playerOneNameLabel, playerTwoNameLabel] = createMultipleElements(['dialog', 'button', 'div', 'input', 'input', 'label', 'label']);
-    setAllAttributes([submitButton, playerOneNameField, playerTwoNameField, playerOneNameLabel, playerTwoNameLabel], ['type', 'id', 'id', 'for', 'for'], ['button', 'playerOne', 'playerTwo', 'playerOne', 'playerTwo'])
-    playerOneNameLabel.textContent = 'Player One Name: ';
-    playerTwoNameLabel.textContent = 'Player Two Name: ';
-    submitButton.textContent = "Submit";
-    
-    submitButton.addEventListener("click", () => {
-        
-        let [playerOneName, playerTwoName] = [playerOneNameField.value, playerTwoNameField.value];
-        dialogWindow.close();
-        initGame([playerOneName, playerTwoName]);
-        
-    });
-
-    appendChildrenToParents([container, dialogWindow, body], [[playerOneNameLabel, playerOneNameField, playerTwoNameLabel, playerTwoNameField, submitButton], [container], [dialogWindow]]);
-    dialogWindow.showModal();
-
-
-}
-
-function updateGameState(cellValue, globalBoard) {
-    let userInput = cellValue;
-    let [currentPlayer, previousPlayer] = globalBoard.players;
-    console.log(currentPlayer);
-
-    if (globalBoard.usedCells.indexOf(userInput) == -1) {
-        console.log("Fired")
-            globalBoard = inputMark(userInput, globalBoard, currentPlayer.symbol);
-            globalBoard.players = [previousPlayer, currentPlayer];
-    }
-
-    if (globalBoard.winnerExists) {
-        createDialogWindow(globalBoard, 'win');
-}
-    if (globalBoard.usedCells.length == 9) {
-        createDialogWindow(globalBoard, 'draw');
-    }
 }
 
 function createBoardCells(globalBoard) {
@@ -162,32 +67,32 @@ function createBoardCells(globalBoard) {
     body.appendChild(container);
 }
 
-function createDialogWindow(globalBoard, event) {
-    let dialogWindow = createElement('dialog');
-    let continueButton = createElement('button');
-    continueButton.setAttribute('type', 'button');
-    continueButton.addEventListener("click", () => {
-        dialogWindow.close();
-        resetBoard();
-        startWindow();
+function attachEventListener(cell, cellValue, globalBoard) {
+    cell.addEventListener("click", () => {
+
+        if (globalBoard.usedCells.indexOf(cellValue) == -1) {
+            let image = createElement('img');
+            image.setAttribute('id', 'marks')
+            let thisCell = document.getElementById(`${cellValue}`);
+            if (globalBoard.players[0].symbol == 'X') {
+                image.setAttribute('src', './X.png');
+            } else {
+                image.setAttribute('src', './O.png');
+            }
+            thisCell.appendChild(image);
+            updateGameState(cellValue, globalBoard);
+        } else {
+            showErrorMessage();
+        }
+        
     });
-    continueButton.textContent = "Reset";
-
-    if (event == 'win') {
-        dialogWindow.textContent = `${globalBoard.players[1].name} wins!`;
-
-    } else if (event == 'draw') {
-        dialogWindow.textContent = `It's a draw.`;
-    }
-
-    dialogWindow.appendChild(continueButton);
-    body.appendChild(dialogWindow);
-    dialogWindow.showModal();
 }
 
 function resetBoard() {
-    let container = document.querySelector('body > div');
-    container.remove();
+    let container = document.querySelectorAll('body > *');
+    container.forEach((element) => {
+        element.remove();
+    })
 }
 
 function appendChildrenToParents(parents, children) {
@@ -195,7 +100,6 @@ function appendChildrenToParents(parents, children) {
         let parent = parents[i];
 
         for (let j = 0; j < children[i].length; j++) {
-            console.log(children[i][j]);
             parent.appendChild(children[i][j]);
         }
     }
@@ -208,5 +112,147 @@ function setAllAttributes(elements, attributes, values) {
         elements[i].setAttribute(attributes[i], values[i]);
     }
 }
+
+function initShowPlayerTurn(globalBoard) {
+    let container = createElement('div');
+    let text = createElement('p');
+    text.setAttribute('id', 'player_turn')
+    text.textContent = `It is ${globalBoard.players[0].name}'s (${globalBoard.players[0].symbol}) turn!`;
+    container.appendChild(text);
+    body.appendChild(container);
+
+}
+
+function updateShowPlayerTurn(globalBoard) {
+    let text = document.querySelector('#player_turn');
+    text.textContent = `It is ${globalBoard.players[0].name}'s (${globalBoard.players[0].symbol}) turn!`;
+
+}
+
+function bringToStart() {
+    resetBoard();
+    startWindow();
+}
+
+// Dialog window creation
+
+function createDialogWindow(globalBoard, event) {
+    let [dialogWindow, continueButton, startOverButton, container] = createMultipleElements(['dialog', 'button', 'button', 'div'])
+    setAllAttributes([continueButton, startOverButton, dialogWindow], ['type', 'type', 'class'], ['button', 'button', 'dialogWindow']);
+    setAllAttributes([continueButton, startOverButton], ['id', 'id'], ['continueBtn', 'startOverBtn']);
+    continueButton.textContent = "Reset";
+    startOverButton.textContent = 'Exit';
+    
+    continueButton.addEventListener("click", () => {
+        dialogWindow.close();
+        resetBoard();
+        initGame([globalBoard.players[0].name, globalBoard.players[1].name]);
+    });
+    
+
+    startOverButton.addEventListener("click", () => {
+        dialogWindow.close();
+        bringToStart();
+    })
+
+    if (event == 'win') {
+        dialogWindow.textContent = `${globalBoard.players[1].name} wins!`;
+
+    } else if (event == 'draw') {
+        dialogWindow.textContent = `It's a draw.`;
+    }
+
+    container.appendChild(continueButton);
+    container.appendChild(startOverButton);
+    dialogWindow.appendChild(container);
+    body.appendChild(dialogWindow);
+    dialogWindow.showModal();
+}
+
+function startWindow() {
+    let [startButton, container, startText] = createMultipleElements(['button', 'div', 'p']);
+    setAllAttributes([container, startButton, startText], ['id', 'type', 'id'], ['start_container', 'button', 'start_text']);
+    startButton.textContent = "Start";
+    startText.textContent = "Tic Tac Toe";
+    startButton.addEventListener("click", () => {
+        askPlayerNames();
+    });
+    container.appendChild(startText);
+    container.appendChild(startButton);
+    body.appendChild(container);
+}
+
+// Main functions
+
+function inputMark(cell, globalBoard, symbol) {
+
+    let currentCellProperties = showCellProperties(cell);
+    globalBoard.winnerExists = !currentCellProperties[cell].every((prop) => {
+    globalBoard.boardObject[prop].push(symbol);
+    return !checkWinCondition(symbol, globalBoard, prop);        
+    })
+    globalBoard.usedCells.push(cell);
+};
+
+function showErrorMessage(typeOfError) {
+    console.log("Error");
+}
+
+function checkWinCondition(symbol, globalBoard, currentCellProperty) {
+    let line = globalBoard.boardObject[currentCellProperty];
+    if (line.length === 3 && line.every((element) => element === symbol)) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
+function initGame(names){
+    let globalBoard = initBoardProperties();
+    let [playerOneName, playerTwoName] = names;
+    globalBoard.players = [createPlayer(playerOneName,"O", globalBoard), createPlayer(playerTwoName, "X", globalBoard)];
+    initShowPlayerTurn(globalBoard);
+    createBoardCells(globalBoard);
+}
+
+function askPlayerNames() {
+    let [dialogWindow, submitButton, container, playerOneNameField, playerTwoNameField, playerOneNameLabel, playerTwoNameLabel] = createMultipleElements(['dialog', 'button', 'div', 'input', 'input', 'label', 'label']);
+    setAllAttributes([submitButton, playerOneNameField, playerTwoNameField, playerOneNameLabel, playerTwoNameLabel, dialogWindow], ['type', 'id', 'id', 'for', 'for', 'class'], ['button', 'playerOne', 'playerTwo', 'playerOne', 'playerTwo', 'dialogWindow'])
+    playerOneNameLabel.textContent = 'Player One Name: ';
+    playerTwoNameLabel.textContent = 'Player Two Name: ';
+    submitButton.textContent = "Submit";
+    
+    submitButton.addEventListener("click", () => {
+        
+        let [playerOneName, playerTwoName] = [playerOneNameField.value, playerTwoNameField.value];
+        dialogWindow.close();
+        resetBoard();
+        initGame([playerOneName, playerTwoName]);
+        
+    });
+
+    appendChildrenToParents([container, dialogWindow, body], [[playerOneNameLabel, playerOneNameField, playerTwoNameLabel, playerTwoNameField, submitButton], [container], [dialogWindow]]);
+    dialogWindow.showModal();
+
+
+}
+
+function updateGameState(cellValue, globalBoard) {
+    let userInput = cellValue;
+    let [currentPlayer, previousPlayer] = globalBoard.players;
+    if (globalBoard.usedCells.indexOf(userInput) == -1) {
+            inputMark(userInput, globalBoard, currentPlayer.symbol)
+            globalBoard.players = [previousPlayer, currentPlayer];
+            updateShowPlayerTurn(globalBoard);
+    }
+
+    if (globalBoard.winnerExists) {
+        createDialogWindow(globalBoard, 'win');
+}
+    if (globalBoard.usedCells.length == 9 && !(globalBoard.winnerExists)) {
+        createDialogWindow(globalBoard, 'draw');
+    }
+}
+
 
 startWindow();
